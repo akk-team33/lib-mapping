@@ -9,7 +9,7 @@ import org.junit.Test;
 public class NormalizerTest
 {
 
-  private final Normalizer normalizer = new Normalizer();
+  private final Normalizer normalizer = Normalizer.builder().build();
 
   @Test
   public void normalNull()
