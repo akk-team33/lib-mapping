@@ -12,39 +12,72 @@ import java.util.stream.Stream;
 import de.team33.libs.reflect.v3.Fields;
 
 
-public class FieldMapper<T>
+public final class FieldMapper<T>
 {
 
-  public static final Stage STAGE = builder().prepare();
+  private final Map<String, Field> fieldMap;
 
-  private final Map<String, Field> fields;
-  private final Function<Class<?>, Function<Object, Object>> subMapping;
-
-  private FieldMapper(final Stage stage, final Class<T> subjectClass)
+  private FieldMapper(final Builder<T> builder)
   {
-    this.fields = stage.fields.map(subjectClass);
-    this.subMapping = stage.subMapping;
+    fieldMap = builder.mapping.prepare().map(builder.subjectClass);
   }
 
-  public static Builder builder()
+  public static <T> Builder<T> builder(final Class<T> subjectClass)
   {
-    return new Builder();
+    return new Builder<>(subjectClass);
   }
 
-  public final Map<Object, Object> map(final T subject)
+  public final Map<String, Object> map(final T subject)
   {
-    return new AbstractMap<Object, Object>()
+    return new AbstractMap<String, Object>()
     {
+      private Set<Entry<String, Object>> backing = new EntrySet(subject);
 
       @Override
-      public final Set<Entry<Object, Object>> entrySet()
+      public Set<Entry<String, Object>> entrySet()
       {
-        return new EntrySet(subject);
+        return backing;
       }
     };
   }
 
-  private class EntrySet extends AbstractSet<Map.Entry<Object, Object>>
+  public static final class Builder<T>
+  {
+
+    private final Class<T> subjectClass;
+    private final Fields.Mapping mapping;
+
+    private Builder(final Class<T> subjectClass)
+    {
+      this.subjectClass = subjectClass;
+      this.mapping = Fields.mapping();
+    }
+
+    public FieldMapper<T> build()
+    {
+      return new FieldMapper<>(this);
+    }
+
+    public Builder<T> setToFieldStream(final Function<Class<?>, Stream<Field>> toFieldStream)
+    {
+      mapping.setToFieldStream(toFieldStream);
+      return this;
+    }
+
+    public Builder<T> setToName(final Function<Field, String> toName)
+    {
+      mapping.setToName(toName);
+      return this;
+    }
+
+    public Builder<T> setToNaming(final Function<Class<?>, Function<Field, String>> toNaming)
+    {
+      mapping.setToNaming(toNaming);
+      return this;
+    }
+  }
+
+  private class EntrySet extends AbstractSet<Map.Entry<String, Object>>
   {
 
     private final Object subject;
@@ -55,18 +88,18 @@ public class FieldMapper<T>
     }
 
     @Override
-    public Iterator<Map.Entry<Object, Object>> iterator()
+    public Iterator<Map.Entry<String, Object>> iterator()
     {
-      return new EntryIterator(fields.entrySet().iterator());
+      return new EntryIterator(fieldMap.entrySet().iterator());
     }
 
     @Override
     public int size()
     {
-      return fields.size();
+      return fieldMap.size();
     }
 
-    private class EntryIterator implements Iterator<Map.Entry<Object, Object>>
+    private class EntryIterator implements Iterator<Map.Entry<String, Object>>
     {
 
       private final Iterator<Map.Entry<String, Field>> backing;
@@ -83,93 +116,65 @@ public class FieldMapper<T>
       }
 
       @Override
-      public Map.Entry<Object, Object> next()
+      public Map.Entry<String, Object> next()
       {
-        final Map.Entry<String, Field> entry = backing.next();
-        final String key = entry.getKey();
-        try
-        {
-          final Object value = entry.getValue().get(subject);
-          return new AbstractMap.SimpleImmutableEntry<>(
-            subMapping.apply(key.getClass()).apply(key),
-            subMapping.apply(value.getClass()).apply(value)
-          );
-        }
-        catch (final IllegalAccessException caught)
-        {
-          throw new IllegalArgumentException("could not access field <" + entry.getValue() + ">", caught);
-        }
+        return new Entry(backing.next());
       }
     }
-  }
 
 
-  public static class Stage
-  {
-    private final Fields.Mapper fields;
-    private final Function<Class<?>, Function<Object, Object>> subMapping;
-
-    private Stage(final Builder builder)
+    private class Entry implements Map.Entry<String, Object>
     {
-      this.fields = Fields.mapping()
-                          .setToFieldStream(builder.toFieldStream)
-                          .setToNaming(builder.toNaming)
-                          .prepare();
-      this.subMapping = builder.subMapping;
-    }
 
-    public final <T> FieldMapper<T> get(final Class<T> subjectClass)
-    {
-      return new FieldMapper<>(this, subjectClass);
-    }
-  }
+      private final Map.Entry<String, Field> backing;
 
+      private Entry(final Map.Entry<String, Field> backing)
+      {
+        this.backing = backing;
+      }
 
-  public static class Builder
-  {
+      @Override
+      public String getKey()
+      {
+        return backing.getKey();
+      }
 
-    private Function<Class<?>, Stream<Field>> toFieldStream;
-    private Function<Class<?>, Function<Field, String>> toNaming;
-    private Function<Class<?>, Function<Object, Object>> subMapping;
+      @Override
+      public Object getValue()
+      {
+        try
+        {
+          return backing.getValue().get(subject);
+        }
+        catch (IllegalAccessException e)
+        {
+          throw new IllegalStateException(e.getMessage(), e);
+        }
+      }
 
-    private Builder()
-    {
-      toFieldStream = Fields.Streaming.SIGNIFICANT;
-      toNaming = Fields.Naming.ContextSensitive.COMPACT;
-      subMapping = ignored -> subject -> subject;
-    }
+      @Override
+      public Object setValue(final Object value)
+      {
+        throw new UnsupportedOperationException("this entry is immutable");
+      }
 
-    public final Builder setToFieldStream(final Function<Class<?>, Stream<Field>> toFieldStream)
-    {
-      this.toFieldStream = toFieldStream;
-      return this;
-    }
+      @Override
+      public int hashCode()
+      {
+        throw new UnsupportedOperationException("not yet implemented");
+      }
 
-    public final Builder setToNaming(final Function<Class<?>, Function<Field, String>> toNaming)
-    {
-      this.toNaming = toNaming;
-      return this;
-    }
+      @Override
+      public boolean equals(final Object obj)
+      {
+        throw new UnsupportedOperationException("not yet implemented");
+      }
 
-    public Builder setToName(final Function<Field, String> toName)
-    {
-      return setToNaming(ignored -> toName);
-    }
-
-    public final Builder setSubMapping(final Function<Class<?>, Function<Object, Object>> subMapping)
-    {
-      this.subMapping = subMapping;
-      return this;
-    }
-
-    public final Stage prepare()
-    {
-      return new Stage(this);
-    }
-
-    public final <T> FieldMapper<T> build(final Class<T> subjectClass)
-    {
-      return prepare().get(subjectClass);
+      @Override
+      public String toString()
+      {
+        throw new UnsupportedOperationException("not yet implemented");
+      }
     }
   }
 }

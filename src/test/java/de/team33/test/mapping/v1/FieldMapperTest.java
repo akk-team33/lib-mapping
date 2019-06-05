@@ -17,7 +17,7 @@ public class FieldMapperTest
   @Test
   public void map()
   {
-    final FieldMapper<Subject> mapper = FieldMapper.STAGE.get(Subject.class);
+    final FieldMapper<Subject> mapper = FieldMapper.builder(Subject.class).build();
     final Subject subject = new Subject(278, 3.141592654, "a string");
     final Map<?, ?> expected = ImmutableMap.builder()
                                            .put(".intValue", subject.getIntValue())
@@ -34,17 +34,16 @@ public class FieldMapperTest
   @Test
   public void mapAlt()
   {
-    final FieldMapper<Subject> mapper = FieldMapper.builder()
+    final FieldMapper<Subject> mapper = FieldMapper.builder(Subject.class)
                                                    .setToFieldStream(Fields.Streaming.FLAT)
                                                    .setToName(Fields.Naming.SIMPLE)
-                                                   .setSubMapping(ignored -> String::valueOf)
-                                                   .build(Subject.class);
+                                                   .build();
     final Subject subject = new Subject(278, 3.141592654, "a string");
     final Map<?, ?> expected = ImmutableMap.builder()
-                                           .put("intValue", String.valueOf(subject.intValue))
-                                           .put("doubleValue", String.valueOf(subject.doubleValue))
-                                           .put("stringValue", String.valueOf(subject.stringValue))
-                                           .put("dateValue", String.valueOf(subject.dateValue))
+                                           .put("intValue", subject.intValue)
+                                           .put("doubleValue", subject.doubleValue)
+                                           .put("stringValue", subject.stringValue)
+                                           .put("dateValue", subject.dateValue)
                                            .build();
     assertEquals(expected, mapper.map(subject));
   }
