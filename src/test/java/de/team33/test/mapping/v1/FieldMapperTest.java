@@ -17,7 +17,7 @@ public class FieldMapperTest
   @Test
   public void map()
   {
-    final FieldMapper<Subject> mapper = FieldMapper.builder(Subject.class).build();
+    final FieldMapper<Subject> mapper = FieldMapper.builder().build(Subject.class);
     final Subject subject = new Subject(278, 3.141592654, "a string");
     final Map<?, ?> expected = ImmutableMap.builder()
                                            .put(".intValue", subject.getIntValue())
@@ -32,14 +32,34 @@ public class FieldMapperTest
   }
 
   @Test
-  public void mapAlt()
+  public void mapFlatSimple()
   {
-    final FieldMapper<Subject> mapper = FieldMapper.builder(Subject.class)
+    final FieldMapper<Subject> mapper = FieldMapper.builder()
                                                    .setToFieldStream(Fields.Streaming.FLAT)
                                                    .setToName(Fields.Naming.SIMPLE)
-                                                   .build();
+                                                   .build(Subject.class);
     final Subject subject = new Subject(278, 3.141592654, "a string");
     final Map<?, ?> expected = ImmutableMap.builder()
+                                           .put("intValue", subject.intValue)
+                                           .put("doubleValue", subject.doubleValue)
+                                           .put("stringValue", subject.stringValue)
+                                           .put("dateValue", subject.dateValue)
+                                           .build();
+    assertEquals(expected, mapper.map(subject));
+  }
+
+  @Test
+  public void mapDeepCompact()
+  {
+    final FieldMapper<Subject> mapper = FieldMapper.builder()
+                                                   .setToFieldStream(Fields.Streaming.DEEP)
+                                                   .setToNaming(Fields.Naming.ContextSensitive.COMPACT)
+                                                   .build(Subject.class);
+    final Subject subject = new Subject(278, 3.141592654, "a string");
+    final Map<?, ?> expected = ImmutableMap.builder()
+                                           .put(".intValue", subject.getIntValue())
+                                           .put(".doubleValue", subject.getDoubleValue())
+                                           .put(".stringValue", subject.getStringValue())
                                            .put("intValue", subject.intValue)
                                            .put("doubleValue", subject.doubleValue)
                                            .put("stringValue", subject.stringValue)

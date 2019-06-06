@@ -17,14 +17,14 @@ public final class FieldMapper<T>
 
   private final Map<String, Field> fieldMap;
 
-  private FieldMapper(final Builder<T> builder)
+  private FieldMapper(final Map<String, Field> fieldMap)
   {
-    fieldMap = builder.mapping.prepare().map(builder.subjectClass);
+    this.fieldMap = fieldMap;
   }
 
-  public static <T> Builder<T> builder(final Class<T> subjectClass)
+  public static Builder builder()
   {
-    return new Builder<>(subjectClass);
+    return new Builder();
   }
 
   public final Map<String, Object> map(final T subject)
@@ -41,36 +41,52 @@ public final class FieldMapper<T>
     };
   }
 
-  public static final class Builder<T>
+  public static final class Stage
   {
 
-    private final Class<T> subjectClass;
-    private final Fields.Mapping mapping;
+    private final Fields.Mapper mapper;
 
-    private Builder(final Class<T> subjectClass)
+    private Stage(final Fields.Mapper mapper)
     {
-      this.subjectClass = subjectClass;
-      this.mapping = Fields.mapping();
+      this.mapper = mapper;
     }
 
-    public FieldMapper<T> build()
+    public <T> FieldMapper<T> apply(final Class<T> subjectClass)
     {
-      return new FieldMapper<>(this);
+      return new FieldMapper<T>(mapper.map(subjectClass));
+    }
+  }
+
+  public static final class Builder
+  {
+
+    private final Fields.Mapping mapping = Fields.mapping();
+
+    private Builder(){}
+
+    public final Stage prepare()
+    {
+      return new Stage(mapping.prepare());
     }
 
-    public Builder<T> setToFieldStream(final Function<Class<?>, Stream<Field>> toFieldStream)
+    public final <T> FieldMapper<T> build(final Class<T> subjectClass)
+    {
+      return prepare().apply(subjectClass);
+    }
+
+    public final Builder setToFieldStream(final Function<Class<?>, Stream<Field>> toFieldStream)
     {
       mapping.setToFieldStream(toFieldStream);
       return this;
     }
 
-    public Builder<T> setToName(final Function<Field, String> toName)
+    public final Builder setToName(final Function<Field, String> toName)
     {
       mapping.setToName(toName);
       return this;
     }
 
-    public Builder<T> setToNaming(final Function<Class<?>, Function<Field, String>> toNaming)
+    public final Builder setToNaming(final Function<Class<?>, Function<Field, String>> toNaming)
     {
       mapping.setToNaming(toNaming);
       return this;
