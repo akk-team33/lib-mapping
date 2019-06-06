@@ -41,6 +41,23 @@ public final class FieldMapper<T>
     };
   }
 
+  public SRC<T> mapFrom(final Map<?, ?> source)
+  {
+    return new SRC<>(source);
+  }
+
+  public final class SRC<T>
+  {
+
+    private final Map<?, ?> source;
+
+    private SRC(final Map<?, ?> source)
+    {
+      this.source = source;
+      throw new UnsupportedOperationException("not yet implemented");
+    }
+  }
+
   public static final class Stage
   {
 

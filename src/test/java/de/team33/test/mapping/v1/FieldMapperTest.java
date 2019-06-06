@@ -15,6 +15,25 @@ public class FieldMapperTest
 {
 
   @Test
+  public void mapReMap()
+  {
+    final FieldMapper<Subject> mapper = FieldMapper.builder().build(Subject.class);
+    final Subject subject = new Subject(278, 3.141592654, "a string");
+    final Map<String, Object> stage = mapper.map(subject);
+    final Subject result = mapper.mapFrom(stage).to(new Subject());
+    final Map<?, ?> expected = ImmutableMap.builder()
+                                           .put(".intValue", subject.getIntValue())
+                                           .put(".doubleValue", subject.getDoubleValue())
+                                           .put(".stringValue", subject.getStringValue())
+                                           .put("intValue", subject.intValue)
+                                           .put("doubleValue", subject.doubleValue)
+                                           .put("stringValue", subject.stringValue)
+                                           .put("dateValue", subject.dateValue)
+                                           .build();
+    assertEquals(expected, mapper.map(subject));
+  }
+
+  @Test
   public void map()
   {
     final FieldMapper<Subject> mapper = FieldMapper.builder().build(Subject.class);
@@ -82,6 +101,13 @@ public class FieldMapperTest
       this.stringValue = stringValue;
     }
 
+    private SuperSubject()
+    {
+      this.intValue = 0;
+      this.doubleValue = 0;
+      this.stringValue = null;
+    }
+
     public int getIntValue()
     {
       return intValue;
@@ -114,6 +140,14 @@ public class FieldMapperTest
       this.doubleValue = doubleValue;
       this.stringValue = stringValue;
       this.dateValue = new Date();
+    }
+
+    private Subject()
+    {
+      this.intValue = 0;
+      this.doubleValue = 0.0;
+      this.stringValue = null;
+      this.dateValue = null;
     }
   }
 }
