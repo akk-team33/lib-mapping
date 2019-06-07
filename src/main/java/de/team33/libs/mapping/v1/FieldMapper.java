@@ -7,24 +7,19 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
-
-import de.team33.libs.reflect.v3.Fields;
 
 
+/**
+ * A tool for creating {@link Map}s that represent the fields of a given instance of a particular type.
+ */
 public final class FieldMapper<T>
 {
 
   private final Map<String, Field> fieldMap;
 
-  private FieldMapper(final Map<String, Field> fieldMap)
+  public FieldMapper(final Class<T> subjectClass, final Function<Class<T>, Map<String, Field>> toFieldsMap)
   {
-    this.fieldMap = fieldMap;
-  }
-
-  public static Builder builder()
-  {
-    return new Builder();
+    this.fieldMap = toFieldsMap.apply(subjectClass);
   }
 
   public final Map<String, Object> map(final T subject)
@@ -41,73 +36,19 @@ public final class FieldMapper<T>
     };
   }
 
-  public SRC<T> mapFrom(final Map<?, ?> source)
+  public final Function<Map<?, ?>, T> mapTo(final T subject)
   {
-    return new SRC<>(source);
-  }
-
-  public final class SRC<T>
-  {
-
-    private final Map<?, ?> source;
-
-    private SRC(final Map<?, ?> source)
-    {
-      this.source = source;
-      throw new UnsupportedOperationException("not yet implemented");
-    }
-  }
-
-  public static final class Stage
-  {
-
-    private final Fields.Mapper mapper;
-
-    private Stage(final Fields.Mapper mapper)
-    {
-      this.mapper = mapper;
-    }
-
-    public <T> FieldMapper<T> apply(final Class<T> subjectClass)
-    {
-      return new FieldMapper<T>(mapper.map(subjectClass));
-    }
-  }
-
-  public static final class Builder
-  {
-
-    private final Fields.Mapping mapping = Fields.mapping();
-
-    private Builder(){}
-
-    public final Stage prepare()
-    {
-      return new Stage(mapping.prepare());
-    }
-
-    public final <T> FieldMapper<T> build(final Class<T> subjectClass)
-    {
-      return prepare().apply(subjectClass);
-    }
-
-    public final Builder setToFieldStream(final Function<Class<?>, Stream<Field>> toFieldStream)
-    {
-      mapping.setToFieldStream(toFieldStream);
-      return this;
-    }
-
-    public final Builder setToName(final Function<Field, String> toName)
-    {
-      mapping.setToName(toName);
-      return this;
-    }
-
-    public final Builder setToNaming(final Function<Class<?>, Function<Field, String>> toNaming)
-    {
-      mapping.setToNaming(toNaming);
-      return this;
-    }
+    return map -> {
+      fieldMap.forEach((name, field) -> {
+        final Object value = map.get(name);
+        try {
+          field.set(subject, value);
+        } catch (IllegalAccessException e) {
+          throw new IllegalStateException(String.format("Cannot set %s to value <%s>", field, value), e);
+        }
+      });
+      return subject;
+    };
   }
 
   private class EntrySet extends AbstractSet<Map.Entry<String, Object>>
