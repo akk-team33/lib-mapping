@@ -1,5 +1,7 @@
 package de.team33.test.mapping.shared;
 
+import de.team33.libs.mapping.v1.FieldMapper;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Date;
@@ -8,6 +10,7 @@ import java.util.List;
 
 public class SubType extends SuperType
 {
+  public static final FieldMapper<SubType> MAPPER = FieldMapper.by(SubType.class);
 
   private final int intValue;
   private final String stringValue;
