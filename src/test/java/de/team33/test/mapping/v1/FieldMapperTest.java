@@ -2,7 +2,7 @@ package de.team33.test.mapping.v1;
 
 import com.google.common.collect.ImmutableMap;
 import de.team33.libs.mapping.v1.FieldMapper;
-import de.team33.libs.reflect.v3.Fields;
+import de.team33.libs.reflect.v4.Fields;
 import de.team33.test.mapping.shared.SubType;
 import org.junit.Test;
 
@@ -41,19 +41,7 @@ public class FieldMapperTest {
 
     @Test
     public void mapFlatSimple() {
-        final FieldMapper<SubType> mapper = FieldMapper.factory(
-                type -> Fields.mapping()
-                        .setToFieldStream(type0 -> Fields.flat(type0).filter(Fields.Filter.SIGNIFICANT))
-                        .setToName(Fields.Naming.SIMPLE)
-                        .prepare()
-                        .map(type)
-        ).apply(SubType.class);
-        final FieldMapper<SubType> mapper1 = FieldMapper.factory(
-                FieldMapperTest::toFieldsMap
-        ).apply(SubType.class);
-        final FieldMapper<SubType> mapper2 = FieldMapper.factory(
-                FieldMapperTest.toFieldsMap()
-        ).apply(SubType.class);
+        final FieldMapper<SubType> mapper = FieldMapper.factory(Fields.Mapping.SIGNIFICANT_FLAT).apply(SubType.class);
         final SubType subject = new SubType(278, "a string", new Date());
         final Map<?, ?> expected = ImmutableMap.builder()
                 .put("intValue", subject.intValue)
@@ -61,21 +49,5 @@ public class FieldMapperTest {
                 .put("dateValue", subject.dateValue)
                 .build();
         assertEquals(expected, mapper.map(subject));
-    }
-
-    private static Function<Class<?>, Map<String, Field>> toFieldsMap() {
-        return type -> Fields.mapping()
-            .setToFieldStream(type0 -> Fields.flat(type0).filter(Fields.Filter.SIGNIFICANT))
-            .setToName(Fields.Naming.SIMPLE)
-            .prepare()
-            .map(type);
-    }
-
-    private static Map<String, Field> toFieldsMap(final Class<?> type) {
-        return Fields.mapping()
-                .setToFieldStream(type0 -> Fields.flat(type0).filter(Fields.Filter.SIGNIFICANT))
-                .setToName(Fields.Naming.SIMPLE)
-                .prepare()
-                .map(type);
     }
 }

@@ -1,6 +1,6 @@
 package de.team33.libs.mapping.v1;
 
-import de.team33.libs.reflect.v3.Fields;
+import de.team33.libs.reflect.v4.Fields;
 
 import java.lang.reflect.Field;
 import java.util.AbstractMap;
@@ -16,8 +16,6 @@ import java.util.function.Function;
  * <p>To get an Instance use {@link FieldMapper#by(Class)} or {@link FieldMapper.Factory#apply(Class)}</p>
  */
 public final class FieldMapper<T> {
-
-    private static final Fields.Mapper FIELDS_MAPPER_0 = Fields.mapping().prepare();
 
     private final Map<String, Field> fieldMap;
 
@@ -42,7 +40,7 @@ public final class FieldMapper<T> {
      * which are not static and not transient.</p>
      */
     public static <T> FieldMapper<T> by(final Class<T> type) {
-        return factory(FIELDS_MAPPER_0::map).apply(type);
+        return factory(Fields.Mapping.SIGNIFICANT_DEEP).apply(type);
     }
 
     /**
