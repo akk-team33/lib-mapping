@@ -12,9 +12,9 @@ public class SubType extends SuperType
 {
   public static final FieldMapper<SubType> MAPPER = FieldMapper.by(SubType.class);
 
-  private final int intValue;
-  private final String stringValue;
-  private final Date dateValue;
+  public final int intValue;
+  public final String stringValue;
+  public final Date dateValue;
 
   public SubType(final int intValue, final String stringValue, final Date dateValue)
   {
