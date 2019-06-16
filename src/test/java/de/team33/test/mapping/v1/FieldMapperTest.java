@@ -6,10 +6,8 @@ import de.team33.libs.reflect.v4.Fields;
 import de.team33.test.mapping.shared.SubType;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Map;
-import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
@@ -41,7 +39,7 @@ public class FieldMapperTest {
 
     @Test
     public void mapFlatSimple() {
-        final FieldMapper<SubType> mapper = FieldMapper.factory(Fields.Mapping.SIGNIFICANT_FLAT).apply(SubType.class);
+        final FieldMapper<SubType> mapper = FieldMapper.stage(Fields.Mapping.SIGNIFICANT_FLAT).apply(SubType.class);
         final SubType subject = new SubType(278, "a string", new Date());
         final Map<?, ?> expected = ImmutableMap.builder()
                 .put("intValue", subject.intValue)

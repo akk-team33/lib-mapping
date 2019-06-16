@@ -8,28 +8,31 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
+
+import static java.util.Collections.unmodifiableMap;
 
 
 /**
  * <p>A tool for creating {@link Map}s that represent the fields of a given instance of a particular type.</p>
- * <p>To get an Instance use {@link FieldMapper#by(Class)} or {@link FieldMapper.Factory#apply(Class)}</p>
+ * <p>To get an Instance use {@link FieldMapper#simple(Class)} or {@link FieldMapper.Stage#apply(Class)}</p>
+ *
+ * @see #stage(Function)
  */
 public final class FieldMapper<T> {
 
     private final Map<String, Field> fieldMap;
 
     private FieldMapper(final Map<String, Field> fieldMap) {
-        this.fieldMap = fieldMap;
+        this.fieldMap = unmodifiableMap(new TreeMap<>(fieldMap));
     }
 
     /**
-     * Returns a {@link Factory factory} for {@link FieldMapper} instances.
-     *
-     * @param toFieldsMap a {@link Function} that provides a {@link Map} template by a given {@link Class}.
+     * Returns a new {@link Stage}.
      */
-    public static Factory factory(final Function<Class<?>, Map<String, Field>> toFieldsMap) {
-        return new Factory(toFieldsMap);
+    public static Stage stage(final Function<Class<?>, Map<String, Field>> mapping) {
+        return new Stage(mapping);
     }
 
     /**
@@ -39,8 +42,8 @@ public final class FieldMapper<T> {
      * <p><em>Significant</em> are all fields of the given class and its superclasses,
      * which are not static and not transient.</p>
      */
-    public static <T> FieldMapper<T> by(final Class<T> type) {
-        return factory(Fields.Mapping.SIGNIFICANT_DEEP).apply(type);
+    public static <T> FieldMapper<T> simple(final Class<T> type) {
+        return stage(Fields.Mapping.SIGNIFICANT_FLAT).apply(type);
     }
 
     /**
@@ -84,23 +87,21 @@ public final class FieldMapper<T> {
     }
 
     /**
-     * <p>A factory for {@link FieldMapper}s.</p>
-     * <p>To get an instance use {@link #factory(Function)}.</p>
+     * Represents a preliminary stage of a {@link FieldMapper}.
      */
-    public static class Factory {
+    public static final class Stage {
 
-        private final Function<Class<?>, Map<String, Field>> toFieldsMap;
+        private final Function<Class<?>, Map<String, Field>> mapping;
 
-        private Factory(final Function<Class<?>, Map<String, Field>> toFieldsMap) {
-            this.toFieldsMap = toFieldsMap;
+        private Stage(final Function<Class<?>, Map<String, Field>> mapping) {
+            this.mapping = mapping;
         }
 
         /**
-         * <p>Returns a {@link FieldMapper} that can represent all the fields of an instance as a map,
-         * which are specified by the {@linkplain #factory(Function) associated} {@link Map} template.</p>
+         * Returns a {@link FieldMapper} for a given {@link Class}.
          */
         public final <T> FieldMapper<T> apply(final Class<T> type) {
-            return new FieldMapper<T>(toFieldsMap.apply(type));
+            return new FieldMapper<>(mapping.apply(type));
         }
     }
 
@@ -122,6 +123,17 @@ public final class FieldMapper<T> {
             return fieldMap.size();
         }
 
+        private Map.Entry<String, Object> newEntry(final Map.Entry<String, Field> entry) {
+            try {
+                return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(subject));
+            } catch (final IllegalAccessException caught) {
+                throw new IllegalStateException(String.format(
+                        "cannot get <%s> from subject <%s>",
+                        entry.getValue(), subject
+                ), caught);
+            }
+        }
+
         private class EntryIterator implements Iterator<Map.Entry<String, Object>> {
 
             private final Iterator<Map.Entry<String, Field>> backing;
@@ -138,17 +150,6 @@ public final class FieldMapper<T> {
             @Override
             public Map.Entry<String, Object> next() {
                 return newEntry(backing.next());
-            }
-        }
-
-        private Map.Entry<String, Object> newEntry(final Map.Entry<String, Field> entry) {
-            try {
-                return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(subject));
-            } catch (final IllegalAccessException caught) {
-                throw new IllegalStateException(String.format(
-                        "cannot get <%s> from subject <%s>",
-                        entry.getValue(), subject
-                ), caught);
             }
         }
     }
