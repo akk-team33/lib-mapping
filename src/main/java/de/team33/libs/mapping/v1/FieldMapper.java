@@ -29,29 +29,35 @@ public final class FieldMapper<T> {
     }
 
     /**
-     * Returns a new {@link Stage}.
+     * Returns a {@linkplain Stage preliminary stage} of a {@link FieldMapper}.
+     *
+     * @param mapping A method that can, in a certain way, generate a {@link Map} from a {@link Class} that can map the
+     *                names of all relevant fields to the {@link Field}s themselves.
      */
     public static Stage stage(final Function<Class<?>, Map<String, Field>> mapping) {
         return new Stage(mapping);
     }
 
     /**
-     * <p>Returns a {@link FieldMapper} that can represent all <em>significant</em> fields of an instance as a
-     * {@link Map}.</p>
+     * <p>Returns a {@link FieldMapper} that can represent all <em>significant</em> fields of an instance of the given
+     * {@link Class} as a {@link Map}.</p>
      *
-     * <p><em>Significant</em> are all fields of the given class and its superclasses,
-     * which are not static and not transient.</p>
+     * <p><em>Significant</em> in this context are all fields straightly declared by the given class,
+     * which are non-static and non-transient.</p>
      */
     public static <T> FieldMapper<T> simple(final Class<T> type) {
         return stage(Fields.Mapping.SIGNIFICANT_FLAT).apply(type);
     }
 
     /**
-     * Returns a {@link Map} representation for the given subject that corresponds to the template of this FieldMapper.
+     * <p>Returns a {@link Map} representation for the given subject that corresponds to the template of this
+     * FieldMapper.</p>
+     * <p>The result {@link Map} directly reflects the affected fields of the subject. If the latter is modified,
+     * the {@link Map} will have corresponding modifications, but the {@link Map} as such is unmodifiable.</p>
      */
     public final Map<String, Object> map(final T subject) {
         return new AbstractMap<String, Object>() {
-            private Set<Entry<String, Object>> backing = new EntrySet(subject);
+            private Set<Entry<String, Object>> backing = new FieldEntrySet(subject, fieldMap.entrySet());
 
             @Override
             public Set<Entry<String, Object>> entrySet() {
@@ -98,59 +104,11 @@ public final class FieldMapper<T> {
         }
 
         /**
-         * Returns a {@link FieldMapper} for a given {@link Class}.
+         * <p>Returns a {@link FieldMapper} that can represent fields of an instance of the given {@link Class} as a
+         * {@link Map}.</p>
          */
         public final <T> FieldMapper<T> apply(final Class<T> type) {
             return new FieldMapper<>(mapping.apply(type));
-        }
-    }
-
-    private class EntrySet extends AbstractSet<Map.Entry<String, Object>> {
-
-        private final Object subject;
-
-        private EntrySet(final Object subject) {
-            this.subject = subject;
-        }
-
-        @Override
-        public Iterator<Map.Entry<String, Object>> iterator() {
-            return new EntryIterator(fieldMap.entrySet().iterator());
-        }
-
-        @Override
-        public int size() {
-            return fieldMap.size();
-        }
-
-        private Map.Entry<String, Object> newEntry(final Map.Entry<String, Field> entry) {
-            try {
-                return new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(subject));
-            } catch (final IllegalAccessException caught) {
-                throw new IllegalStateException(String.format(
-                        "cannot get <%s> from subject <%s>",
-                        entry.getValue(), subject
-                ), caught);
-            }
-        }
-
-        private class EntryIterator implements Iterator<Map.Entry<String, Object>> {
-
-            private final Iterator<Map.Entry<String, Field>> backing;
-
-            private EntryIterator(final Iterator<Map.Entry<String, Field>> backing) {
-                this.backing = backing;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return backing.hasNext();
-            }
-
-            @Override
-            public Map.Entry<String, Object> next() {
-                return newEntry(backing.next());
-            }
         }
     }
 }
