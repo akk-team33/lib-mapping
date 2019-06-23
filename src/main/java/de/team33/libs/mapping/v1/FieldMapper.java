@@ -4,13 +4,12 @@ import de.team33.libs.reflect.v4.Fields;
 
 import java.lang.reflect.Field;
 import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 
+import static java.lang.String.format;
 import static java.util.Collections.unmodifiableMap;
 
 
@@ -21,6 +20,8 @@ import static java.util.Collections.unmodifiableMap;
  * @see #stage(Function)
  */
 public final class FieldMapper<T> {
+
+    private static final String ACCESS_FAILED = "Cannot set field <%s> of <%s> to value <%s>";
 
     private final Map<String, Field> fieldMap;
 
@@ -67,29 +68,25 @@ public final class FieldMapper<T> {
     }
 
     /**
-     * Returns a {@link Function} that can copy the fields of an origin to a given {@code target} instance of the
-     * associated type and return that instance.
+     * Remaps an origin {@link Map} to a target instance of the associated {@link Class} and returns that instance.
      */
-    public final Function<T, T> copyTo(final T target) {
-        return origin -> mapTo(target).apply(map(origin));
+    public final T remap(final Map<?, ?> origin, final T target) {
+        fieldMap.forEach((name, field) -> {
+            final Object value = origin.get(name);
+            try {
+                field.set(target, value);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException(format(ACCESS_FAILED, field, target, value), e);
+            }
+        });
+        return target;
     }
 
     /**
-     * Returns a {@link Function} that can map a {@link Map} to a given {@code target} instance of the associated type
-     * and return that instance.
+     * Copies an origin of the associated {@link Class} to a target instance and returns that target instance.
      */
-    public final Function<Map<?, ?>, T> mapTo(final T target) {
-        return map -> {
-            fieldMap.forEach((name, field) -> {
-                final Object value = map.get(name);
-                try {
-                    field.set(target, value);
-                } catch (IllegalAccessException e) {
-                    throw new IllegalStateException(String.format("Cannot set %s to value <%s>", field, value), e);
-                }
-            });
-            return target;
-        };
+    public final T copy(final T origin, final T target) {
+        return remap(map(origin), target);
     }
 
     /**

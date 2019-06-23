@@ -18,12 +18,12 @@ public class FieldMapperTest {
     public void map() {
         final SubType expected = new SubType(278, "a string", new Date());
         final Map<String, Object> stage = SubType.MAPPER.map(expected);
-        final SubType result = SubType.MAPPER.mapTo(new SubType(0, null, null)).apply(stage);
+        final SubType result = SubType.MAPPER.remap(stage, new SubType(0, null, null));
         assertEquals(expected, result);
     }
 
     @Test
-    public void mapTo() {
+    public void remap() {
         final Map<?, ?> expected = ImmutableMap.builder()
                 .put(".intValue", 11)
                 .put(".stringValue", "abc")
@@ -32,7 +32,7 @@ public class FieldMapperTest {
                 .put("stringValue", "def")
                 .put("dateValue", new Date())
                 .build();
-        final SubType stage = SubType.MAPPER.mapTo(new SubType(0, null, null)).apply(expected);
+        final SubType stage = SubType.MAPPER.remap(expected, new SubType(0, null, null));
         final Map<String, Object> result = SubType.MAPPER.map(stage);
         assertEquals(expected, result);
     }
