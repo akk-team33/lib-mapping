@@ -1,7 +1,7 @@
-package de.team33.test.mapping.v1;
+package de.team33.test.mapping.v2;
 
 import com.google.common.collect.ImmutableMap;
-import de.team33.libs.mapping.v1.FieldMapper;
+import de.team33.libs.mapping.v2.FieldMapper;
 import de.team33.libs.reflect.v4.Fields;
 import de.team33.test.mapping.shared.SubType;
 import org.junit.Test;

@@ -1,6 +1,6 @@
 package de.team33.test.mapping.shared;
 
-import de.team33.libs.mapping.v1.FieldMapper;
+import de.team33.libs.mapping.v2.FieldMapper;
 import de.team33.libs.reflect.v4.Fields;
 
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package de.team33.libs.mapping.v1;
+package de.team33.libs.mapping.v2;
 
 import java.lang.reflect.Field;
 import java.util.AbstractMap.SimpleImmutableEntry;

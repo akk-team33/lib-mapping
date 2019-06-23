@@ -1,4 +1,4 @@
-package de.team33.libs.mapping.v1;
+package de.team33.libs.mapping.v2;
 
 import de.team33.libs.reflect.v4.Fields;
 
