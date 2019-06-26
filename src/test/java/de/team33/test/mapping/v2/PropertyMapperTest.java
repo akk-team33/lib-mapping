@@ -15,20 +15,21 @@ public class PropertyMapperTest
 
     @Test
     public void map() {
-        final FlatType expected = new FlatType(278, "a string", new Date());
+        final FlatType expected = new FlatType(true, 278, "a string", new Date());
         final Map<String, Object> stage = FlatType.MAPPER.map(expected);
-        final FlatType result = FlatType.MAPPER.remap(stage, new FlatType(0, null, null));
+        final FlatType result = FlatType.MAPPER.remap(stage, new FlatType(false, 0, null, null));
         assertEquals(expected, result);
     }
 
     @Test
     public void remap() {
         final Map<?, ?> expected = ImmutableMap.builder()
+                .put("boolValue", true)
                 .put("intValue", -5)
                 .put("stringValue", "def")
                 .put("dateValue", new Date())
                 .build();
-        final FlatType stage = FlatType.MAPPER.remap(expected, new FlatType(0, null, null));
+        final FlatType stage = FlatType.MAPPER.remap(expected, new FlatType(false, 0, null, null));
         final Map<String, Object> result = FlatType.MAPPER.map(stage);
         assertEquals(expected, result);
     }

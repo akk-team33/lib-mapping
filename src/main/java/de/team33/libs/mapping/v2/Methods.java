@@ -34,13 +34,13 @@ class Methods
 
   private static String stripped(final String name, final String prefix) {
     final String tail = name.substring(prefix.length());
-    return tail.substring(0, 1).toLowerCase() + tail.substring(1);
+    return tail.isEmpty() ? "" : tail.substring(0, 1).toLowerCase() + tail.substring(1);
   }
 
   @FunctionalInterface
   interface Naming extends Function<Method, String> {
 
-    Naming SIMPLE = method -> method.getName();
+    Naming SIMPLE = Method::getName;
     Naming GETTER_AS_PROPERTY = Methods::getterAsPropertyName;
     Naming SETTER_AS_PROPERTY = Methods::setterAsPropertyName;
   }

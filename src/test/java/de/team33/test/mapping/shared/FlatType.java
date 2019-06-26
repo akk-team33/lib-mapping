@@ -11,11 +11,13 @@ public class FlatType {
 
     public static final PropertyMapper<FlatType> MAPPER = PropertyMapper.simple(FlatType.class);
 
+    private boolean boolValue;
     private int intValue;
     private String stringValue;
     private Date dateValue;
 
-    public FlatType(final int intValue, final String stringValue, final Date dateValue) {
+    public FlatType(final boolean boolValue, final int intValue, final String stringValue, final Date dateValue) {
+        this.boolValue = boolValue;
         this.intValue = intValue;
         this.stringValue = stringValue;
         this.dateValue = dateValue;
@@ -23,6 +25,15 @@ public class FlatType {
 
     private static List<Object> toList(final FlatType subject) {
         return Arrays.asList(subject.intValue, subject.stringValue, subject.dateValue);
+    }
+
+    public boolean isBoolValue() {
+        return boolValue;
+    }
+
+    public FlatType setBoolValue(final boolean boolValue) {
+        this.boolValue = boolValue;
+        return this;
     }
 
     public int getIntValue() {
