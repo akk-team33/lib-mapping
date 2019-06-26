@@ -79,11 +79,13 @@ public final class PropertyMapper<T> {
      */
     public final T remap(final Map<?, ?> origin, final T target) {
         setterMap.forEach((name, setter) -> {
-            final Object value = origin.get(name);
-            try {
-                setter.invoke(target, value);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new IllegalStateException(format(ACCESS_FAILED, setter, target, value), e);
+            if (origin.containsKey(name)) {
+                final Object value = origin.get(name);
+                try {
+                    setter.invoke(target, value);
+                } catch (IllegalAccessException | InvocationTargetException | RuntimeException e) {
+                    throw new IllegalStateException(format(ACCESS_FAILED, setter, target, value), e);
+                }
             }
         });
         return target;

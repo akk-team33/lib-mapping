@@ -24,9 +24,6 @@ public class PropertyMapperTest
     @Test
     public void remap() {
         final Map<?, ?> expected = ImmutableMap.builder()
-                .put(".intValue", 11)
-                .put(".stringValue", "abc")
-                .put(".dateValue", new Date(0))
                 .put("intValue", -5)
                 .put("stringValue", "def")
                 .put("dateValue", new Date())
