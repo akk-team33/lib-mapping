@@ -7,7 +7,8 @@ import java.util.List;
 import de.team33.libs.mapping.v2.PropertyMapper;
 
 
-public class FlatType {
+public class FlatType //implements FlatInterface
+{
 
     public static final PropertyMapper<FlatType> MAPPER = PropertyMapper.simple(FlatType.class);
 
@@ -45,10 +46,12 @@ public class FlatType {
         return this;
     }
 
+    //@Override
     public String getStringValue() {
         return stringValue;
     }
 
+    //@Override
     public FlatType setStringValue(String stringValue) {
         this.stringValue = stringValue;
         return this;

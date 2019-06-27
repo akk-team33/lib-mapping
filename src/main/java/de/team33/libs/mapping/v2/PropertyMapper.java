@@ -1,18 +1,12 @@
 package de.team33.libs.mapping.v2;
 
 import static java.lang.String.format;
-import static java.util.Collections.unmodifiableMap;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.AbstractMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Function;
-
-import de.team33.libs.reflect.v4.Fields;
 
 
 /**
@@ -27,12 +21,12 @@ public final class PropertyMapper<T> {
 
     private static final String ACCESS_FAILED = "Cannot apply method <%s> of <%s> with parameter <%s>";
 
-    private final Map<String, Method> getterMap;
-    private final Map<String, Method> setterMap;
+    private final GetterMapper<T> getterMapper;
+    private final SetterMapper<T> setterMap;
 
-    private PropertyMapper(final Map<String, Method> getterMap, final Map<String, Method> setterMap) {
-      this.getterMap = unmodifiableMap(new TreeMap<>(getterMap));
-      this.setterMap = unmodifiableMap(new TreeMap<>(setterMap));
+    private PropertyMapper(final GetterMapper<T> getterMapper, final SetterMapper<T> setterMapper) {
+      this.getterMapper = getterMapper;
+      this.setterMap = setterMapper;
     }
 
     /**
@@ -64,31 +58,14 @@ public final class PropertyMapper<T> {
      * the {@link Map} will have corresponding modifications, but the {@link Map} as such is unmodifiable.</p>
      */
     public final Map<String, Object> map(final T subject) {
-        return new AbstractMap<String, Object>() {
-            private Set<Entry<String, Object>> backing = new MethodEntrySet(subject, getterMap.entrySet());
-
-            @Override
-            public Set<Entry<String, Object>> entrySet() {
-                return backing;
-            }
-        };
+        return getterMapper.map(subject);
     }
 
     /**
      * Remaps an origin {@link Map} to a target instance of the associated {@link Class} and returns that instance.
      */
     public final T remap(final Map<?, ?> origin, final T target) {
-        setterMap.forEach((name, setter) -> {
-            if (origin.containsKey(name)) {
-                final Object value = origin.get(name);
-                try {
-                    setter.invoke(target, value);
-                } catch (IllegalAccessException | InvocationTargetException | RuntimeException e) {
-                    throw new IllegalStateException(format(ACCESS_FAILED, setter, target, value), e);
-                }
-            }
-        });
-        return target;
+        return setterMap.remap(origin, target);
     }
 
     /**
@@ -103,13 +80,13 @@ public final class PropertyMapper<T> {
      */
     public static final class Stage {
 
-        private final Function<Class<?>, Map<String, Method>> getterMapping;
-        private final Function<Class<?>, Map<String, Method>> setterMapping;
+        private final GetterMapper.Stage getterStage;
+        private final SetterMapper.Stage setterStage;
 
         private Stage(final Function<Class<?>, Map<String, Method>> getterMapping,
                       final Function<Class<?>, Map<String, Method>> setterMapping) {
-            this.getterMapping = getterMapping;
-            this.setterMapping = setterMapping;
+            this.getterStage = GetterMapper.stage(getterMapping);
+            this.setterStage = SetterMapper.stage(setterMapping);
         }
 
         /**
@@ -117,7 +94,7 @@ public final class PropertyMapper<T> {
          * {@link Map}.</p>
          */
         public final <T> PropertyMapper<T> apply(final Class<T> type) {
-            return new PropertyMapper<>(getterMapping.apply(type), setterMapping.apply(type));
+            return new PropertyMapper<T>(getterStage.apply(type), setterStage.apply(type));
         }
     }
 }
