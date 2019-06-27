@@ -3,7 +3,6 @@ package de.team33.libs.mapping.v2;
 import static java.lang.String.format;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.function.Function;
@@ -22,11 +21,11 @@ public final class PropertyMapper<T> {
     private static final String ACCESS_FAILED = "Cannot apply method <%s> of <%s> with parameter <%s>";
 
     private final GetterMapper<T> getterMapper;
-    private final SetterMapper<T> setterMap;
+    private final SetterMapper<T> setterMapper;
 
     private PropertyMapper(final GetterMapper<T> getterMapper, final SetterMapper<T> setterMapper) {
       this.getterMapper = getterMapper;
-      this.setterMap = setterMapper;
+      this.setterMapper = setterMapper;
     }
 
     /**
@@ -65,7 +64,7 @@ public final class PropertyMapper<T> {
      * Remaps an origin {@link Map} to a target instance of the associated {@link Class} and returns that instance.
      */
     public final T remap(final Map<?, ?> origin, final T target) {
-        return setterMap.remap(origin, target);
+        return setterMapper.remap(origin, target);
     }
 
     /**
