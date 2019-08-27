@@ -15,11 +15,30 @@ import static org.junit.Assert.assertEquals;
 public class FieldMapperTest {
 
     @Test
+    public void copy() {
+        final SubType expected = new SubType(278, "a string", new Date());
+        final SubType result = SubType.MAPPER.copy(expected, new SubType(0, null, null));
+        assertEquals(expected, result);
+    }
+
+    @Test
     public void map() {
         final SubType expected = new SubType(278, "a string", new Date());
         final Map<String, Object> stage = SubType.MAPPER.map(expected);
         final SubType result = SubType.MAPPER.remap(stage, new SubType(0, null, null));
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void mapFlat() {
+        final FieldMapper<SubType> mapper = FieldMapper.simple(SubType.class);
+        final SubType subject = new SubType(278, "a string", new Date());
+        final Map<?, ?> expected = ImmutableMap.builder()
+                .put("intValue", subject.intValue)
+                .put("stringValue", subject.stringValue)
+                .put("dateValue", subject.dateValue)
+                .build();
+        assertEquals(expected, mapper.map(subject));
     }
 
     @Test
@@ -35,17 +54,5 @@ public class FieldMapperTest {
         final SubType stage = SubType.MAPPER.remap(expected, new SubType(0, null, null));
         final Map<String, Object> result = SubType.MAPPER.map(stage);
         assertEquals(expected, result);
-    }
-
-    @Test
-    public void mapFlatSimple() {
-        final FieldMapper<SubType> mapper = FieldMapper.stage(Fields.Mapping.SIGNIFICANT_FLAT).apply(SubType.class);
-        final SubType subject = new SubType(278, "a string", new Date());
-        final Map<?, ?> expected = ImmutableMap.builder()
-                .put("intValue", subject.intValue)
-                .put("stringValue", subject.stringValue)
-                .put("dateValue", subject.dateValue)
-                .build();
-        assertEquals(expected, mapper.map(subject));
     }
 }
