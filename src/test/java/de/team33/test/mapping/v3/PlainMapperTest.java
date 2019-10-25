@@ -4,14 +4,13 @@ import com.google.common.collect.ImmutableMap;
 import de.team33.libs.mapping.v3.Mapper;
 import de.team33.libs.mapping.v3.PlainMapper;
 import de.team33.test.mapping.shared.PlainType;
-import org.junit.Test;
 
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
+import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-
-public class PlainMapperTest {
+public class PlainMapperTest extends MapperTestBase<PlainType> {
 
     private static final Mapper<PlainType> MAPPER = PlainMapper.<PlainType>builder()
             .add("privateInt", PlainType::getPrivateInt, PlainType::setPrivateInt)
@@ -19,25 +18,26 @@ public class PlainMapperTest {
             .add("privateDate", PlainType::getPrivateDate, PlainType::setPrivateDate)
             .build();
 
-    @Test
-    public final void map() {
-        final PlainType origin = new PlainType().setPrivateInt(278)
-                                                .setPrivateString("a string")
-                                                .setPrivateDate(new Date());
-        final Map<String, Object> stage = MAPPER.map(origin);
-        final PlainType result = MAPPER.remap(stage, new PlainType());
-        assertEquals(origin, result);
+    private final Random random = new Random();
+
+    @Override
+    protected final Mapper<PlainType> mapper() {
+        return MAPPER;
     }
 
-    @Test
-    public final void remap() {
-        final Map<String, Object> origin = ImmutableMap.<String, Object>builder()
-                .put("privateInt", 278)
-                .put("privateString", "a string")
-                .put("privateDate", new Date())
+    @Override
+    protected final PlainType newSubject() {
+        return new PlainType().setPrivateInt(random.nextInt())
+                              .setPrivateString(new BigInteger(random.nextInt(64) + 1, random).toString(36))
+                              .setPrivateDate(new Date(random.nextLong()));
+    }
+
+    @Override
+    protected final Map<String, Object> newMap() {
+        return ImmutableMap.<String, Object>builder()
+                .put("privateInt", random.nextInt())
+                .put("privateString", new BigInteger(random.nextInt(64) + 1, random).toString(36))
+                .put("privateDate", new Date(random.nextLong()))
                 .build();
-        final PlainType stage = MAPPER.remap(origin, new PlainType());
-        final Map<String, Object> result = MAPPER.map(stage);
-        assertEquals(origin, result);
     }
 }
