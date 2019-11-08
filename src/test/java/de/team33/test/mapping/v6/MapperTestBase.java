@@ -12,13 +12,13 @@ public abstract class MapperTestBase<O, R> {
         this.mapper = mapper;
     }
 
-    protected abstract O newOrigin();
+    protected abstract O anyOrigin();
 
-    protected abstract R newResult();
+    protected abstract R anyResult();
 
     @Test
     public final void map() {
-        final O origin = newOrigin();
+        final O origin = anyOrigin();
         final R stage = mapper.map(origin);
         final O result = mapper.reverse().map(stage);
         Assert.assertEquals(origin, result);
@@ -26,7 +26,7 @@ public abstract class MapperTestBase<O, R> {
 
     @Test
     public final void reverse() {
-        final R origin = newResult();
+        final R origin = anyResult();
         final O stage = mapper.reverse().map(origin);
         final R result = mapper.map(stage);
         Assert.assertEquals(origin, result);

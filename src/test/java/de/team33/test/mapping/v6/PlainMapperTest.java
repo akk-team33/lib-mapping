@@ -13,12 +13,12 @@ public class PlainMapperTest extends MapperTestBase<Long, String>{
     }
 
     @Override
-    protected final Long newOrigin() {
+    protected final Long anyOrigin() {
         return random.nextLong();
     }
 
     @Override
-    protected final String newResult() {
-        return newOrigin().toString();
+    protected final String anyResult() {
+        return anyOrigin().toString();
     }
 }
