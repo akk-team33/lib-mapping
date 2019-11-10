@@ -70,7 +70,7 @@ public class MapMapping<T> {
         }
 
         @Override
-        public final Map<String, Object> map(final T origin) {
+        public final Map<String, Object> apply(final T origin) {
             final Map<String, Object> result = newResult.get();
             for (final Entry<T, ?> entry : entries) {
                 entry.forward(origin, result);
@@ -79,7 +79,7 @@ public class MapMapping<T> {
         }
 
         @Override
-        public final Mapper<Map<String, Object>, T> reverse() {
+        public final Mapper<Map<String, Object>, T> reversal() {
             return reverse;
         }
 
@@ -92,7 +92,7 @@ public class MapMapping<T> {
             }
 
             @Override
-            public T map(final Map<String, Object> origin) {
+            public T apply(final Map<String, Object> origin) {
                 final T result = newOrigin.get();
                 for (final Entry<T, ?> entry : entries) {
                     entry.reverse(origin, result);
@@ -101,7 +101,7 @@ public class MapMapping<T> {
             }
 
             @Override
-            public Mapper<T, Map<String, Object>> reverse() {
+            public Mapper<T, Map<String, Object>> reversal() {
                 return Forward.this;
             }
         }

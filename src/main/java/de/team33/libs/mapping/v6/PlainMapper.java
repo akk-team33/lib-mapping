@@ -13,12 +13,12 @@ public class PlainMapper<O, R> implements Mapper<O, R> {
     }
 
     @Override
-    public final R map(final O origin) {
+    public final R apply(final O origin) {
         return forward.apply(origin);
     }
 
     @Override
-    public final Mapper<R, O> reverse() {
+    public final Mapper<R, O> reversal() {
         return reverse;
     }
 
@@ -31,12 +31,12 @@ public class PlainMapper<O, R> implements Mapper<O, R> {
         }
 
         @Override
-        public final O map(final R origin) {
+        public final O apply(final R origin) {
             return method.apply(origin);
         }
 
         @Override
-        public final Mapper<O, R> reverse() {
+        public final Mapper<O, R> reversal() {
             return PlainMapper.this;
         }
     }

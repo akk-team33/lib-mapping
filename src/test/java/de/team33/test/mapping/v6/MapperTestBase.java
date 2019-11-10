@@ -19,16 +19,16 @@ public abstract class MapperTestBase<O, R> {
     @Test
     public final void map() {
         final O origin = anyOrigin();
-        final R stage = mapper.map(origin);
-        final O result = mapper.reverse().map(stage);
+        final R stage = mapper.apply(origin);
+        final O result = mapper.reversal().apply(stage);
         Assert.assertEquals(origin, result);
     }
 
     @Test
     public final void reverse() {
         final R origin = anyResult();
-        final O stage = mapper.reverse().map(origin);
-        final R result = mapper.map(stage);
+        final O stage = mapper.reversal().apply(origin);
+        final R result = mapper.apply(stage);
         Assert.assertEquals(origin, result);
     }
 }
