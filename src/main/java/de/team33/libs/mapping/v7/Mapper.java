@@ -1,8 +1,8 @@
 package de.team33.libs.mapping.v7;
 
 /**
- * A {@link Mapper} provides a method to map information of one type to another,
- * ideally without changing the information itself.
+ * A {@link Mapper} provides a method to map information of one type to another, ideally without changing the
+ * information itself. This should ensure the reversibility of the method.
  *
  * @param <O> the original type
  * @param <T> the target type
